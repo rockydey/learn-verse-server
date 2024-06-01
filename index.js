@@ -26,6 +26,43 @@ async function run() {
 
     const userCollection = client.db("learnVerseDB").collection("users");
 
+    // custom middleware
+    const verifyToken = (req, res, next) => {
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: "unauthorized access" });
+      }
+      const token = req.headers.authorization.split(" ")[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: "unauthorized access" });
+        }
+        req.decoded = decoded;
+        next();
+      });
+    };
+
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { user_email: email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.user_role === "admin" ? true : false;
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+
+    const verifyTeacher = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { user_email: email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.user_role === "teacher" ? true : false;
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+
     // jwt related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -36,13 +73,29 @@ async function run() {
     });
 
     // user related api
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
 
+    app.get("/users/:email", verifyToken, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      const query = { user_email: email };
+      const user = await userCollection.findOne(query);
+      const role = user.user_role;
+      res.send({ role });
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
+      const query = { user_email: user.user_email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exists", insertedId: null });
+      }
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
