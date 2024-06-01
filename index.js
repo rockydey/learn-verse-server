@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const app = express();
 const port = process.env.PORT || 5000;
@@ -97,6 +97,20 @@ async function run() {
         return res.send({ message: "user already exists", insertedId: null });
       }
       const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.patch("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const role = req.body;
+      const updateUser = {
+        $set: {
+          user_role: role.user_role,
+        },
+      };
+      const result = await userCollection.updateOne(query, updateUser, options);
       res.send(result);
     });
 
