@@ -74,8 +74,20 @@ async function run() {
 
     // user related api
     app.get("/users", verifyToken, async (req, res) => {
-      const result = await userCollection.find().toArray();
-      res.send(result);
+      const searchText = req.query.search;
+      if (searchText === "") {
+        const result = await userCollection.find().toArray();
+        res.send(result);
+      } else {
+        const query = {
+          $or: [
+            { user_name: { $regex: new RegExp(searchText, "i") } },
+            { user_email: { $regex: new RegExp(searchText, "i") } },
+          ],
+        };
+        const searchResult = await userCollection.find(query).toArray();
+        res.send(searchResult);
+      }
     });
 
     app.get("/users/:email", verifyToken, verifyAdmin, async (req, res) => {
