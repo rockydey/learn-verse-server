@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion } = require("mongodb");
+const jwt = require("jsonwebtoken");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -24,6 +25,15 @@ async function run() {
     await client.connect();
 
     const userCollection = client.db("learnVerseDB").collection("users");
+
+    // jwt related api
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
 
     // user related api
     app.get("/users", async (req, res) => {
