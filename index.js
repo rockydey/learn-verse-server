@@ -25,6 +25,7 @@ async function run() {
     await client.connect();
 
     const userCollection = client.db("learnVerseDB").collection("users");
+    const noteCollection = client.db("learnVerseDB").collection("studentNotes");
 
     // custom middleware
     const verifyToken = (req, res, next) => {
@@ -56,8 +57,19 @@ async function run() {
       const email = req.decoded.email;
       const query = { user_email: email };
       const user = await userCollection.findOne(query);
-      const isAdmin = user?.user_role === "teacher" ? true : false;
-      if (!isAdmin) {
+      const isTeacher = user?.user_role === "teacher" ? true : false;
+      if (!isTeacher) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+
+    const verifyStudent = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { user_email: email };
+      const user = await userCollection.findOne(query);
+      const isStudent = user?.user_role === "student" ? true : false;
+      if (!isStudent) {
         return res.status(403).send({ message: "forbidden access" });
       }
       next();
@@ -72,8 +84,15 @@ async function run() {
       res.send({ token });
     });
 
+    // student notes related api
+    app.post("/student-notes", verifyToken, verifyStudent, async (req, res) => {
+      const note = req.body;
+      const result = await noteCollection.insertOne(note);
+      res.send(result);
+    });
+
     // user related api
-    app.get("/users", verifyToken, async (req, res) => {
+    app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const searchText = req.query.search;
       if (searchText === "") {
         const result = await userCollection.find().toArray();
@@ -90,7 +109,7 @@ async function run() {
       }
     });
 
-    app.get("/users/:email", verifyToken, verifyAdmin, async (req, res) => {
+    app.get("/users/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       if (email !== req.decoded.email) {
         return res.status(403).send({ message: "forbidden access" });
