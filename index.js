@@ -87,7 +87,32 @@ async function run() {
       res.send({ token });
     });
 
-    // teacher sessions related api
+    // admin related api
+    app.get("/sessions", verifyToken, verifyAdmin, async (req, res) => {
+      const result = await sessionCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.patch("/sessions/:id", verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const amount = req.body;
+      const updateSession = {
+        $set: {
+          registration_fee: amount.regAmount,
+          status: "approve",
+        },
+      };
+      const options = { upsert: true };
+      const result = await sessionCollection.updateOne(
+        query,
+        updateSession,
+        options
+      );
+      res.send(result);
+    });
+
+    // teacher related api
     app.get(
       "/sessions/:email",
       verifyToken,
@@ -106,7 +131,7 @@ async function run() {
       res.send(result);
     });
 
-    // student notes related api
+    // student related api
     app.get(
       "/student-notes/:email",
       verifyToken,
