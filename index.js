@@ -88,6 +88,18 @@ async function run() {
     });
 
     // teacher sessions related api
+    app.get(
+      "/sessions/:email",
+      verifyToken,
+      verifyTeacher,
+      async (req, res) => {
+        const email = req.params.email;
+        const query = { tutor_email: email };
+        const result = await sessionCollection.find(query).toArray();
+        res.send(result);
+      }
+    );
+
     app.post("/sessions", verifyToken, verifyTeacher, async (req, res) => {
       const session = req.body;
       const result = await sessionCollection.insertOne(session);
