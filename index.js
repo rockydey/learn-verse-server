@@ -96,6 +96,30 @@ async function run() {
       res.send(result);
     });
 
+    app.patch(
+      "/student-notes/:id",
+      verifyToken,
+      verifyStudent,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+        const noteInfo = req.body;
+        const updateNote = {
+          $set: {
+            title: noteInfo.title,
+            description: noteInfo.description,
+          },
+        };
+        const result = await noteCollection.updateOne(
+          query,
+          updateNote,
+          options
+        );
+        res.send(result);
+      }
+    );
+
     app.delete(
       "/student-notes/:id",
       verifyToken,
@@ -137,7 +161,7 @@ async function run() {
       res.send({ role });
     });
 
-    app.post("/users", verifyToken, async (req, res) => {
+    app.post("/users", async (req, res) => {
       const user = req.body;
       const query = { user_email: user.user_email };
       const existingUser = await userCollection.findOne(query);
