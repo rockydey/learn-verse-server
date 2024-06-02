@@ -112,6 +112,31 @@ async function run() {
       res.send(result);
     });
 
+    app.patch(
+      "/rejectSession/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const feedback = req.body;
+        const options = { upsert: true };
+        const updateFeedback = {
+          $set: {
+            rejection_reason: feedback.rejReason,
+            feedback: feedback.feedback,
+            status: "reject",
+          },
+        };
+        const result = await sessionCollection.updateOne(
+          query,
+          updateFeedback,
+          options
+        );
+        res.send(result);
+      }
+    );
+
     // teacher related api
     app.get(
       "/sessions/:email",
