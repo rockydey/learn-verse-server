@@ -26,6 +26,9 @@ async function run() {
 
     const userCollection = client.db("learnVerseDB").collection("users");
     const noteCollection = client.db("learnVerseDB").collection("studentNotes");
+    const sessionCollection = client
+      .db("learnVerseDB")
+      .collection("teacherSessions");
 
     // custom middleware
     const verifyToken = (req, res, next) => {
@@ -84,11 +87,25 @@ async function run() {
       res.send({ token });
     });
 
-    // student notes related api
-    app.get("/student-notes", verifyToken, verifyStudent, async (req, res) => {
-      const result = await noteCollection.find().toArray();
+    // teacher sessions related api
+    app.post("/sessions", verifyToken, verifyTeacher, async (req, res) => {
+      const session = req.body;
+      const result = await sessionCollection.insertOne(session);
       res.send(result);
     });
+
+    // student notes related api
+    app.get(
+      "/student-notes/:email",
+      verifyToken,
+      verifyStudent,
+      async (req, res) => {
+        const email = req.params.email;
+        const query = { user_email: email };
+        const result = await noteCollection.find(query).toArray();
+        res.send(result);
+      }
+    );
 
     app.post("/student-notes", verifyToken, verifyStudent, async (req, res) => {
       const note = req.body;
@@ -157,7 +174,7 @@ async function run() {
       }
       const query = { user_email: email };
       const user = await userCollection.findOne(query);
-      const role = user.user_role;
+      const role = user?.user_role;
       res.send({ role });
     });
 
