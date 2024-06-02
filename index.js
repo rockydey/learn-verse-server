@@ -85,11 +85,28 @@ async function run() {
     });
 
     // student notes related api
+    app.get("/student-notes", verifyToken, verifyStudent, async (req, res) => {
+      const result = await noteCollection.find().toArray();
+      res.send(result);
+    });
+
     app.post("/student-notes", verifyToken, verifyStudent, async (req, res) => {
       const note = req.body;
       const result = await noteCollection.insertOne(note);
       res.send(result);
     });
+
+    app.delete(
+      "/student-notes/:id",
+      verifyToken,
+      verifyStudent,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await noteCollection.deleteOne(query);
+        res.send(result);
+      }
+    );
 
     // user related api
     app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
@@ -120,7 +137,7 @@ async function run() {
       res.send({ role });
     });
 
-    app.post("/users", async (req, res) => {
+    app.post("/users", verifyToken, async (req, res) => {
       const user = req.body;
       const query = { user_email: user.user_email };
       const existingUser = await userCollection.findOne(query);
