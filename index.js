@@ -191,6 +191,18 @@ async function run() {
       res.send(result);
     });
 
+    app.get(
+      "/materials/:email",
+      verifyToken,
+      verifyTeacher,
+      async (req, res) => {
+        const email = req.params.email;
+        const query = { tutor_email: email };
+        const result = await materialCollection.find(query).toArray();
+        res.send(result);
+      }
+    );
+
     app.post("/materials", verifyToken, verifyTeacher, async (req, res) => {
       const material = req.body;
       const result = await materialCollection.insertOne(material);
@@ -229,6 +241,13 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await sessionCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.delete("/materials/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await materialCollection.deleteOne(query);
       res.send(result);
     });
 
