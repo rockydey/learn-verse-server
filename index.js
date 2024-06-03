@@ -156,6 +156,14 @@ async function run() {
       res.send(result);
     });
 
+    // common (admin & teacher) api
+    app.delete("/sessions/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await sessionCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // student related api
     app.get(
       "/student-notes/:email",
