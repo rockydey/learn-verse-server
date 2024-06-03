@@ -137,6 +137,38 @@ async function run() {
       }
     );
 
+    app.patch(
+      "/updateSession/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const sessionInfo = req.body;
+        const options = { upsert: true };
+        const updateSession = {
+          $set: {
+            session_title: sessionInfo.session_title,
+            session_description: sessionInfo.session_description,
+            session_duration: sessionInfo.session_duration,
+            session_category: sessionInfo.session_category,
+            registration_fee: sessionInfo.registration_fee,
+            status: sessionInfo.status,
+            registration_start: sessionInfo.registration_start,
+            registration_end: sessionInfo.registration_end,
+            class_start: sessionInfo.class_start,
+            class_end: sessionInfo.class_end,
+          },
+        };
+        const result = await sessionCollection.updateOne(
+          query,
+          updateSession,
+          options
+        );
+        res.send(result);
+      }
+    );
+
     // teacher related api
     app.get(
       "/sessions/:email",
