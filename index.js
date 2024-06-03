@@ -156,6 +156,33 @@ async function run() {
       res.send(result);
     });
 
+    app.patch(
+      "/sessionStatus/:id",
+      verifyToken,
+      verifyTeacher,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const status = req.body;
+        const options = { upsert: true };
+        const updateStatus = {
+          $set: {
+            status: status.status,
+          },
+          $unset: {
+            rejection_reason: "",
+            feedback: "",
+          },
+        };
+        const result = await sessionCollection.updateOne(
+          query,
+          updateStatus,
+          options
+        );
+        res.send(result);
+      }
+    );
+
     // common (admin & teacher) api
     app.delete("/sessions/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
