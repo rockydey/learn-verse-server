@@ -414,12 +414,27 @@ async function run() {
     });
 
     // public api
-    app.get("/userRole/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { user_email: email };
-      const user = await userCollection.findOne(query);
-      const role = user?.user_role;
-      res.send({ role });
+    app.get("/allSessions", async (req, res) => {
+      const query = { status: "approve" };
+      const result = await sessionCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/sessionCount", async (req, res) => {
+      const count = await sessionCollection.estimatedDocumentCount();
+      res.send({ count });
+    });
+
+    app.get("/allStudySessions", async (req, res) => {
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      const skipPage = size * page;
+      const result = await sessionCollection
+        .find()
+        .skip(skipPage)
+        .limit(size)
+        .toArray();
+      res.send(result);
     });
 
     await client.db("admin").command({ ping: 1 });
