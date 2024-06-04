@@ -266,6 +266,29 @@ async function run() {
       }
     );
 
+    app.get("/notes", verifyToken, verifyTeacher, async (req, res) => {
+      const result = await noteCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.patch("/notes/:id", verifyToken, verifyTeacher, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const review = req.body;
+      const options = { upsert: true };
+      const updateReview = {
+        $set: {
+          review: review.review,
+        },
+      };
+      const result = await noteCollection.updateOne(
+        query,
+        updateReview,
+        options
+      );
+      res.send(result);
+    });
+
     // common (admin & teacher) api
     app.delete("/sessions/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
