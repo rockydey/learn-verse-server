@@ -172,6 +172,11 @@ async function run() {
       }
     );
 
+    app.get("/allMaterials", verifyToken, verifyAdmin, async (req, res) => {
+      const result = await materialCollection.find().toArray();
+      res.send(result);
+    });
+
     // teacher related api
     app.get(
       "/sessions/:email",
