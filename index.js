@@ -210,6 +210,31 @@ async function run() {
     });
 
     app.patch(
+      "/materials/:id",
+      verifyToken,
+      verifyTeacher,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const updateInfo = req.body;
+        const options = { upsert: true };
+        const updateMaterial = {
+          $set: {
+            session_title: updateInfo.title,
+            link: updateInfo.driveLink,
+            image: updateInfo.image,
+          },
+        };
+        const result = await materialCollection.updateOne(
+          query,
+          updateMaterial,
+          options
+        );
+        res.send(result);
+      }
+    );
+
+    app.patch(
       "/sessionStatus/:id",
       verifyToken,
       verifyTeacher,
