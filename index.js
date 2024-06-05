@@ -437,6 +437,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/teachers", async (req, res) => {
+      const query = { user_role: "teacher" };
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
