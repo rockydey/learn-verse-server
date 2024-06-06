@@ -26,6 +26,7 @@ async function run() {
 
     const userCollection = client.db("learnVerseDB").collection("users");
     const noteCollection = client.db("learnVerseDB").collection("studentNotes");
+    const bookingCollection = client.db("learnVerseDB").collection("bookings");
     const materialCollection = client
       .db("learnVerseDB")
       .collection("materials");
@@ -359,6 +360,12 @@ async function run() {
       }
     );
 
+    app.post("/bookings", verifyToken, verifyStudent, async (req, res) => {
+      const booking = req.body;
+      const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+
     // user related api
     app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const searchText = req.query.search;
@@ -410,6 +417,14 @@ async function run() {
         },
       };
       const result = await userCollection.updateOne(query, updateUser, options);
+      res.send(result);
+    });
+
+    // common secure api
+    app.get("/session/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await sessionCollection.findOne(query);
       res.send(result);
     });
 
