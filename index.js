@@ -27,6 +27,9 @@ async function run() {
     const userCollection = client.db("learnVerseDB").collection("users");
     const noteCollection = client.db("learnVerseDB").collection("studentNotes");
     const bookingCollection = client.db("learnVerseDB").collection("bookings");
+    const feedbackCollection = client
+      .db("learnVerseDB")
+      .collection("feedbacks");
     const materialCollection = client
       .db("learnVerseDB")
       .collection("materials");
@@ -363,6 +366,31 @@ async function run() {
     app.post("/bookings", verifyToken, verifyStudent, async (req, res) => {
       const booking = req.body;
       const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    app.get("/booked-session", verifyToken, verifyStudent, async (req, res) => {
+      const email = req.query.email;
+      const query = { user_email: email };
+      const result = await bookingCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get(
+      "/booked-session/:id",
+      verifyToken,
+      verifyStudent,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await bookingCollection.findOne(query);
+        res.send(result);
+      }
+    );
+
+    app.post("/feedbacks", verifyToken, verifyStudent, async (req, res) => {
+      const feedback = req.body;
+      const result = await feedbackCollection.insertOne(feedback);
       res.send(result);
     });
 
