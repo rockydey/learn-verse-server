@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -93,6 +94,27 @@ async function run() {
       });
       res.send({ token });
     });
+
+    // payment related api
+    app.post(
+      "/create-payment-intent",
+      verifyToken,
+      verifyStudent,
+      async (req, res) => {
+        const { price } = req.body;
+        const amount = parseInt(price * 100);
+
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types: ["card"],
+        });
+
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      }
+    );
 
     // admin related api
     app.get("/sessions", verifyToken, verifyAdmin, async (req, res) => {
@@ -394,13 +416,6 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/feedbacks/:id", verifyToken, verifyStudent, async (req, res) => {
-      const id = req.params.id;
-      const query = { session_id: id };
-      const result = await feedbackCollection.find(query).toArray();
-      res.send(result);
-    });
-
     // user related api
     app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const searchText = req.query.search;
@@ -460,6 +475,13 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await sessionCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.get("/feedbacks/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { session_id: id };
+      const result = await feedbackCollection.find(query).toArray();
       res.send(result);
     });
 
