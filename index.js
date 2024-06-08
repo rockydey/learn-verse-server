@@ -9,7 +9,15 @@ const port = process.env.PORT || 5000;
 
 // build in middleware
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173/",
+      "https://learn-verse-auth.web.app/",
+      "https://learn-verse-auth.firebaseapp.com/",
+    ],
+  })
+);
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.7heaon2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -23,7 +31,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const userCollection = client.db("learnVerseDB").collection("users");
     const noteCollection = client.db("learnVerseDB").collection("studentNotes");
@@ -527,7 +535,7 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
