@@ -12,9 +12,9 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173/",
-      "https://learn-verse-auth.web.app/",
-      "https://learn-verse-auth.firebaseapp.com/",
+      "http://localhost:5173",
+      "https://learn-verse-auth.web.app",
+      "https://learn-verse-auth.firebaseapp.com",
     ],
   })
 );
