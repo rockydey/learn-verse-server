@@ -416,6 +416,18 @@ async function run() {
       res.send(result);
     });
 
+    app.get(
+      "/get-materials/:id",
+      verifyToken,
+      verifyStudent,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { study_session_id: id };
+        const result = await materialCollection.find(query).toArray();
+        res.send(result);
+      }
+    );
+
     // user related api
     app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const searchText = req.query.search;
